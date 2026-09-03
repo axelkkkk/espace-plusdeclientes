@@ -1445,14 +1445,25 @@ function appliquer(d){
   return total;
 }
 
+var enLecture = false, dureeLecture = 0;
 function tirer(silencieux){
   if (!S.url) { badge("", "Local"); return; }
+  if (enLecture || enVol) return;                 // jamais deux échanges en même temps
+  enLecture = true;
+  var debut = Date.now();
   if (!silencieux) badge("", "Lecture…");
-  fetch(S.url + (S.url.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now())
+  fetch(S.url + (S.url.indexOf("?") === -1 ? "?" : "&") + "t=" + debut)
     .then(function(r){ return r.json(); })
     .then(function(d){ if (d && d.erreur) { badge("err", "Refusé"); return; }
                        appliquer(d); badge("on", "Partagé"); })
-    .catch(function(){ badge("err", "Hors ligne"); });
+    .catch(function(){ badge("err", "Hors ligne"); })
+    .then(function(){ enLecture = false; dureeLecture = Date.now() - debut; });
+}
+/* le rythme s'adapte : un Sheet lent est relu moins souvent */
+function cadence(){ return dureeLecture > 5000 ? 15000 : dureeLecture > 2500 ? 10000 : 8000; }
+function boucleLecture(){
+  if (S.url && !document.hidden) tirer(true);
+  setTimeout(boucleLecture, cadence());
 }
 
 function pousser(){
@@ -3598,7 +3609,7 @@ if (membreSession) {
 }
 rendre();
 if (S.url) tirer(); else badge("", "Local");
-setInterval(function(){ if (S.url && !document.hidden) tirer(true); }, 8000);
+setTimeout(boucleLecture, 8000);
 document.addEventListener("visibilitychange", function(){ if (!document.hidden && S.url) tirer(true); });
 window.addEventListener("online", function(){ if (S.url) tirer(true); });
 </script>
