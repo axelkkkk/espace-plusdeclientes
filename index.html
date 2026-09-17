@@ -39,12 +39,12 @@
   --ombre:0 1px 2px rgba(6,32,22,.05),0 6px 20px rgba(6,32,22,.06);
   --logo:linear-gradient(140deg,#12A277,#0B7A57);
 }
-/* ----- SOMBRE : noir verdi, menthe en accent ----- */
+/* ----- SOMBRE : ardoise verte adoucie (éclaircie le 17/09, l'ancien noir fatiguait), menthe en accent ----- */
 @media (prefers-color-scheme:dark){:root:not([data-theme="clair"]){
   color-scheme:dark;
-  --ground:#070C0A; --panel:#0E1613; --raise:#141F1A; --hover:#1B2821;
-  --line:#1E2C26; --line-2:#2B3C34; --lum:rgba(255,255,255,.04);
-  --ink:#EAF3EE; --ink-2:#9DB3A8; --ink-3:#6E857A; --ink-4:#4F625A;
+  --ground:#131B18; --panel:#1B2622; --raise:#232F2A; --hover:#2B3933;
+  --line:#2C3A34; --line-2:#3B4C44; --lum:rgba(255,255,255,.05);
+  --ink:#F0F6F2; --ink-2:#B4C6BC; --ink-3:#8BA095; --ink-4:#64786E;
   --acc:#3FDD9C; --acc-ink:#04120C; --acc-dim:rgba(63,221,156,.14); --acc-line:rgba(63,221,156,.36);
   --urgent:#FF7C8C; --urgent-bg:rgba(255,124,140,.14); --urgent-line:rgba(255,124,140,.34);
   --important:#F0BA5E; --important-bg:rgba(240,186,94,.14); --important-line:rgba(240,186,94,.32);
@@ -53,14 +53,14 @@
   --ok:#3FDD9C; --ok-bg:rgba(63,221,156,.14); --ok-line:rgba(63,221,156,.3);
   --grille:radial-gradient(1100px 620px at 10% -14%,rgba(63,221,156,.09) 0%,transparent 58%),
            radial-gradient(950px 540px at 94% 0%,rgba(18,162,119,.07) 0%,transparent 54%);
-  --ombre:0 1px 2px rgba(0,0,0,.45);
+  --ombre:0 1px 2px rgba(0,0,0,.28);
   --logo:linear-gradient(140deg,#3FDD9C,#12A277);
 }}
 :root[data-theme="sombre"]{
   color-scheme:dark;
-  --ground:#070C0A; --panel:#0E1613; --raise:#141F1A; --hover:#1B2821;
-  --line:#1E2C26; --line-2:#2B3C34; --lum:rgba(255,255,255,.04);
-  --ink:#EAF3EE; --ink-2:#9DB3A8; --ink-3:#6E857A; --ink-4:#4F625A;
+  --ground:#131B18; --panel:#1B2622; --raise:#232F2A; --hover:#2B3933;
+  --line:#2C3A34; --line-2:#3B4C44; --lum:rgba(255,255,255,.05);
+  --ink:#F0F6F2; --ink-2:#B4C6BC; --ink-3:#8BA095; --ink-4:#64786E;
   --acc:#3FDD9C; --acc-ink:#04120C; --acc-dim:rgba(63,221,156,.14); --acc-line:rgba(63,221,156,.36);
   --urgent:#FF7C8C; --urgent-bg:rgba(255,124,140,.14); --urgent-line:rgba(255,124,140,.34);
   --important:#F0BA5E; --important-bg:rgba(240,186,94,.14); --important-line:rgba(240,186,94,.32);
@@ -69,7 +69,7 @@
   --ok:#3FDD9C; --ok-bg:rgba(63,221,156,.14); --ok-line:rgba(63,221,156,.3);
   --grille:radial-gradient(1100px 620px at 10% -14%,rgba(63,221,156,.09) 0%,transparent 58%),
            radial-gradient(950px 540px at 94% 0%,rgba(18,162,119,.07) 0%,transparent 54%);
-  --ombre:0 1px 2px rgba(0,0,0,.45);
+  --ombre:0 1px 2px rgba(0,0,0,.28);
   --logo:linear-gradient(140deg,#3FDD9C,#12A277);
 }
 *{box-sizing:border-box}
@@ -682,7 +682,7 @@ button.tile:hover{border-color:var(--line-2);background:var(--hover)}
 /* ---------- dialogues ---------- */
 dialog{border:1px solid var(--line-2);padding:0;border-radius:var(--r);background:var(--panel);
   color:var(--ink);width:min(560px,94vw);box-shadow:0 24px 70px rgba(0,0,0,.45)}
-dialog::backdrop{background:rgba(6,8,12,.66)}
+dialog::backdrop{background:rgba(10,16,14,.5);backdrop-filter:blur(2px)}
 .dh{padding:17px 21px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
 .dh h2{font-family:var(--f-d);font-size:15px;font-weight:var(--h-fw);letter-spacing:var(--h-ls);
   text-transform:var(--h-tt);flex:1}
@@ -714,17 +714,52 @@ dialog::backdrop{background:rgba(6,8,12,.66)}
 .df{padding:15px 21px;border-top:1px solid var(--line);display:flex;gap:10px;
   background:var(--raise);flex-wrap:wrap}
 .df .sp{margin-left:auto}
-.bloc-c{display:flex;flex-direction:column;gap:13px;padding:15px;border:1px solid var(--line);border-radius:14px}
-.bloc-c > h3{margin:0;display:flex;align-items:center;gap:8px;font-family:var(--f-d);font-size:14px;font-weight:800}
-.bloc-c > h3 .etat{margin-left:auto;font-family:var(--ui-f);font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;
+#dlgMoi{width:min(560px,calc(100% - 32px))}
+.cp-tete{position:relative;padding:26px 24px 20px;display:flex;flex-direction:column;gap:14px;
+  background:linear-gradient(160deg,var(--acc-dim),transparent 70%);border-bottom:1px solid var(--line)}
+.cp-id{display:flex;align-items:center;gap:16px;min-width:0}
+.cp-id .av{width:76px;height:76px;border-radius:22px;font-size:26px;box-shadow:0 0 0 4px var(--panel),0 0 0 5px var(--line-2)}
+.cp-id .co{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cp-id h2{margin:0;font-family:var(--f-d);font-size:23px;font-weight:800;letter-spacing:-.01em;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.cp-id .sous{font-size:13px;color:var(--ink-2)}
+.cp-id .ident{font-family:var(--f-m);font-size:11.5px;color:var(--ink-3)}
+.cp-x{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;border:0;cursor:pointer;
+  display:grid;place-items:center;background:transparent;color:var(--ink-2)}
+.cp-x:hover{background:var(--hover);color:var(--ink)}
+.cp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.cp-stats div{padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line);
+  display:flex;flex-direction:column;gap:1px}
+.cp-stats b{font-family:var(--f-d);font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.cp-stats span{font-size:11.5px;color:var(--ink-3)}
+#dlgMoi .db{gap:0;padding:4px 24px 10px;overflow-x:hidden;display:block}
+.cp-sec{padding:18px 0;display:flex;flex-direction:column;gap:12px}
+.cp-sec + .cp-sec{border-top:1px solid var(--line)}
+.cp-h{display:flex;align-items:center;gap:10px}
+.cp-h h3{margin:0;font-family:var(--f-d);font-size:15px;font-weight:800}
+.cp-h .etat{font-family:var(--ui-f);font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;
   background:var(--ok-bg);color:var(--ok)}
-.bloc-c > h3 .etat.non{background:var(--important-bg);color:var(--important)}
-.bloc-c .btn{align-self:flex-start}
+.cp-h .etat.non{background:var(--important-bg);color:var(--important)}
+.lien{margin-left:auto;border:0;background:none;padding:4px 2px;cursor:pointer;font:inherit;font-size:13.5px;
+  font-weight:700;color:var(--acc)}
+.lien:hover{text-decoration:underline}
+.lien:disabled{color:var(--ink-4);cursor:not-allowed;text-decoration:none}
+.cp-l{display:flex;align-items:center;gap:13px;min-width:0}
+.cp-l .ic{flex:none;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
+  background:var(--raise);border:1px solid var(--line);color:var(--ink-2)}
+.cp-l .co{display:flex;flex-direction:column;gap:1px;min-width:0}
+.cp-l small{font-size:12px;color:var(--ink-3)}
+.cp-l b{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-l b.v-acc{color:var(--acc)} .cp-l b.v-nr{color:var(--ink-3);font-weight:500;font-style:italic}
+.cp-l b.v-al{color:var(--important);white-space:normal}
+.cp-edit{display:flex;flex-direction:column;gap:13px;padding:15px;border-radius:14px;background:var(--raise);
+  border:1px solid var(--line)}
+.cp-act{display:flex;gap:9px;justify-content:flex-end}
 .verrou{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-radius:11px;
   background:var(--important-bg);color:var(--ink);font-size:12.5px;line-height:1.55}
 .verrou .i{flex:none;color:var(--important);margin-top:1px}
-.bloc-c.ferme .champs{opacity:.45;pointer-events:none}
-@media (max-width:520px){.bloc-c .f2{grid-template-columns:1fr}}
+@media (max-width:520px){.cp-edit .f2{grid-template-columns:1fr} .cp-id .av{width:60px;height:60px;font-size:20px;border-radius:18px}
+  .cp-id h2{font-size:19px}}
 .note{font-size:12.5px;color:var(--ink-3);line-height:1.6;margin:0}
 .note code{font-family:var(--f-m);font-size:11.5px;background:var(--raise);padding:1px 5px;
   border-radius:4px;color:var(--acc)}
@@ -1007,50 +1042,57 @@ dialog::backdrop{background:rgba(6,8,12,.66)}
 </form></dialog>
 
 <dialog id="dlgMoi"><form method="dialog" id="frmMoi">
-  <div class="dh"><h2>Mon compte</h2></div>
+  <div class="cp-tete">
+    <button class="cp-x" type="button" id="pCancel" aria-label="Fermer"><svg class="i"><use href="#i-croix"/></svg></button>
+    <div class="cp-id" id="moiCarte"></div>
+    <div class="cp-stats" id="moiStats"></div>
+  </div>
   <div class="db">
-    <div id="moiCarte"></div>
-    <section class="bloc-c" id="blocProfil">
-      <h3><svg class="i sm"><use href="#i-mail"/></svg>Mon profil
-        <span class="etat" id="pEtatMail"></span></h3>
-      <div class="f2">
-        <div class="f"><label for="pE">Mon adresse e-mail</label>
-          <input id="pE" type="email" autocomplete="email" placeholder="prenom@plusdeclientes.fr"></div>
-        <div class="f"><label for="pR">Mon rôle</label>
-          <input id="pR" list="dlR" placeholder="COO, Media buyer…"></div>
+    <section class="cp-sec" id="blocProfil">
+      <div class="cp-h"><h3>Informations de contact</h3><span class="etat" id="pEtatMail"></span>
+        <button class="lien" type="button" id="pEditProfil">Modifier</button></div>
+      <div id="pVueProfil" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div class="cp-edit" id="pZoneProfil" hidden>
+        <div class="f2">
+          <div class="f"><label for="pE">Adresse e-mail</label>
+            <input id="pE" type="email" autocomplete="email" placeholder="prenom@plusdeclientes.fr"></div>
+          <div class="f"><label for="pR">Rôle</label>
+            <input id="pR" list="dlR" placeholder="COO, Media buyer…"></div>
+        </div>
+        <p class="note">Ton compte doit être relié à une adresse e-mail : c'est la condition pour
+        changer ton mot de passe. Elle sert aussi aux rappels et aux invitations d'agenda.</p>
+        <p class="lerr" id="pErrMail" hidden></p>
+        <div class="cp-act"><button class="btn" type="button" id="pAnnProfil">Annuler</button>
+          <button class="btn pri" type="button" id="pProfil">Enregistrer</button></div>
       </div>
-      <p class="note">Ton compte doit être relié à une adresse e-mail : c'est elle qui t'identifie,
-      et c'est la condition pour changer ton mot de passe. Elle sert aussi aux rappels et aux
-      invitations d'agenda.</p>
-      <p class="lerr" id="pErrMail" hidden></p>
-      <button class="btn pri" type="button" id="pProfil">Enregistrer mon profil</button>
     </section>
 
-    <section class="bloc-c" id="blocMdp">
-      <h3><svg class="i sm"><use href="#i-cadenas"/></svg>Mot de passe</h3>
+    <section class="cp-sec" id="blocMdp">
+      <div class="cp-h"><h3>Mot de passe</h3>
+        <button class="lien" type="button" id="pEditMdp">Modifier</button></div>
+      <div id="pVueMdp"></div>
       <div class="verrou" id="pVerrou"><svg class="i"><use href="#i-cadenas"/></svg>
-        <span><b>Relie d'abord ton compte à une adresse e-mail.</b><br>Renseigne-la juste au-dessus
-        et enregistre ton profil : le changement de mot de passe se débloque aussitôt.</span></div>
-      <div class="champs">
+        <span><b>Relie d'abord ton compte à une adresse e-mail.</b><br>Ajoute-la dans « Informations de
+        contact » : le changement de mot de passe se débloque aussitôt.</span></div>
+      <div class="cp-edit" id="pZoneMdp" hidden>
         <div class="f"><label for="pA">Mot de passe actuel</label>
           <input id="pA" type="password" autocomplete="current-password"></div>
-        <div class="f2" style="margin-top:13px">
+        <div class="f2">
           <div class="f"><label for="pN">Nouveau mot de passe</label>
             <input id="pN" type="password" autocomplete="new-password"></div>
           <div class="f"><label for="pC">Confirmer</label>
             <input id="pC" type="password" autocomplete="new-password"></div>
         </div>
+        <p class="note">Six caractères au minimum. Le changement vaut pour tous tes appareils.</p>
+        <p class="lerr" id="pErr" hidden></p>
+        <div class="cp-act"><button class="btn" type="button" id="pAnnMdp">Annuler</button>
+          <button class="btn pri" type="button" id="pGo">Changer le mot de passe</button></div>
       </div>
-      <p class="lerr" id="pErr" hidden></p>
-      <button class="btn" type="button" id="pGo">Changer le mot de passe</button>
-      <p class="note">Six caractères au minimum. Le mot de passe n'est jamais enregistré tel quel,
-      seulement son empreinte — il filtre l'accès, il ne chiffre rien. Le changement vaut pour
-      tous tes appareils.</p>
     </section>
   </div>
   <div class="df">
     <button class="btn danger" type="button" id="pOut">Se déconnecter</button>
-    <button class="btn sp" type="button" id="pCancel">Fermer</button>
+    <span class="note" style="margin-left:auto;text-align:right">Le mot de passe filtre l'accès,<br>il ne chiffre rien.</span>
   </div>
 </form></dialog>
 
@@ -3415,23 +3457,63 @@ document.getElementById("mDel").addEventListener("click", function(){
 var dlgMoi = document.getElementById("dlgMoi");
 document.getElementById("bMoi").addEventListener("click", function(){
   if (!S.moi) return;
-  var m = membre(S.moi);
-  var n = TACHES().filter(function(x){ return x.qui === m.nom && !x.fait; }).length;
-  document.getElementById("moiCarte").innerHTML =
-    '<div class="mc-h" style="padding-bottom:4px">' + avatar(m.nom, "lg") +
-    '<span class="co"><b style="font-family:var(--f-d);font-size:16px;font-weight:800">' +
-    esc(m.nom) + (m.admin ? ' <span class="badge-admin">admin</span>' : "") + "</b>" +
-    '<s style="font-size:12px;color:var(--ink-3)">' + esc(m.role || "membre") +
-    " · identifiant " + esc(m.user) + " · " + n + " tâche" + (n > 1 ? "s" : "") + " en cours</s></span></div>";
-  document.getElementById("pA").value = "";
-  document.getElementById("pN").value = "";
-  document.getElementById("pC").value = "";
-  document.getElementById("pE").value = m.email || "";
-  document.getElementById("pR").value = m.role || "";
+  ["pA","pN","pC"].forEach(function(id){ document.getElementById(id).value = ""; });
   document.getElementById("pErr").hidden = true;
   document.getElementById("pErrMail").hidden = true;
-  etatCompte();
+  document.getElementById("pZoneProfil").hidden = true;
+  document.getElementById("pZoneMdp").hidden = true;
+  rendreCompte();
   dlgMoi.showModal();
+});
+function ligneCompte(ic, titre, valeur, cls){
+  return '<div class="cp-l"><span class="ic"><svg class="i"><use href="#' + ic + '"/></svg></span>' +
+    '<span class="co"><small>' + esc(titre) + '</small><b class="' + (cls || "") + '">' + esc(valeur) + "</b></span></div>";
+}
+function rendreCompte(){
+  var m = membre(S.moi);
+  var nT = TACHES().filter(function(x){ return x.qui === m.nom && !x.fait; }).length;
+  var nR = REUNIONS().filter(function(x){ var d = deYmd(x.date);
+    return d && d >= auj() && x.participants.indexOf(m.nom) !== -1; }).length;
+  var esp = mesEspaces();
+  document.getElementById("moiCarte").innerHTML = avatar(m.nom, "lg") +
+    '<span class="co"><h2>' + esc(m.nom) + (m.admin ? ' <span class="badge-admin">admin</span>' : "") + "</h2>" +
+    '<span class="sous">' + esc(m.role || "Membre de l'équipe") + "</span>" +
+    '<span class="ident">@' + esc(m.user) + "</span></span>";
+  document.getElementById("moiStats").innerHTML =
+    "<div><b>" + nT + "</b><span>tâche" + (nT > 1 ? "s" : "") + " en cours</span></div>" +
+    "<div><b>" + nR + "</b><span>réunion" + (nR > 1 ? "s" : "") + " à venir</span></div>" +
+    "<div><b>" + esp.length + "</b><span>espace" + (esp.length > 1 ? "s" : "") + "</span></div>";
+  document.getElementById("pVueProfil").innerHTML =
+    (m.email ? ligneCompte("i-mail", "Adresse e-mail", m.email, "v-acc")
+             : ligneCompte("i-mail", "Adresse e-mail", "Non renseignée", "v-nr")) +
+    (m.role  ? ligneCompte("i-equipe", "Rôle", m.role)
+             : ligneCompte("i-equipe", "Rôle", "Non renseigné", "v-nr"));
+  document.getElementById("pE").value = m.email || "";
+  document.getElementById("pR").value = m.role || "";
+  document.getElementById("pVueMdp").innerHTML = ligneCompte("i-cadenas", "Mot de passe", "••••••••");
+  hacher(MDP_DEFAUT, m.sel, function(h){          // encore le mot de passe commun ? on le dit
+    if (h === m.mdp && S.moi === m.nom) document.getElementById("pVueMdp").innerHTML =
+      ligneCompte("i-cadenas", "Mot de passe", "C'est encore le mot de passe de départ — pense à le changer", "v-al");
+  });
+  etatCompte();
+}
+document.getElementById("pEditProfil").addEventListener("click", function(){
+  var z = document.getElementById("pZoneProfil");
+  z.hidden = !z.hidden; erreurMail("");
+  if (!z.hidden) document.getElementById("pE").focus();
+});
+document.getElementById("pAnnProfil").addEventListener("click", function(){
+  document.getElementById("pZoneProfil").hidden = true; rendreCompte();
+});
+document.getElementById("pEditMdp").addEventListener("click", function(){
+  if (!etatCompte()) return;
+  var z = document.getElementById("pZoneMdp");
+  z.hidden = !z.hidden; erreurP("");
+  if (!z.hidden) document.getElementById("pA").focus();
+});
+document.getElementById("pAnnMdp").addEventListener("click", function(){
+  document.getElementById("pZoneMdp").hidden = true;
+  ["pA","pN","pC"].forEach(function(id){ document.getElementById(id).value = ""; });
 });
 var RE_MAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 /* le mot de passe ne se change que si le compte est relié à une adresse e-mail enregistrée */
@@ -3440,9 +3522,10 @@ function etatCompte(){
   var e = document.getElementById("pEtatMail");
   e.textContent = relie ? "Compte relié" : "E-mail manquant";
   e.className = "etat" + (relie ? "" : " non");
-  document.getElementById("blocMdp").classList.toggle("ferme", !relie);
   document.getElementById("pVerrou").hidden = relie;
-  ["pA","pN","pC","pGo"].forEach(function(id){ document.getElementById(id).disabled = !relie; });
+  document.getElementById("pEditMdp").disabled = !relie;
+  if (!relie) document.getElementById("pZoneMdp").hidden = true;
+  if (!relie && !m.email) document.getElementById("pZoneProfil").hidden = false;   // on ouvre directement ce qu'il faut remplir
   return relie;
 }
 function erreurMail(t){
@@ -3460,8 +3543,8 @@ document.getElementById("pProfil").addEventListener("click", function(){
   var premier = !RE_MAIL.test(m.email || "");
   m.email = e;
   m.role  = document.getElementById("pR").value.trim();
-  document.getElementById("pE").value = e;
-  touche(m); sauver(); etatCompte();
+  touche(m); sauver();
+  document.getElementById("pZoneProfil").hidden = true; rendreCompte();
   toast(premier ? "Compte relié — tu peux changer ton mot de passe" : "Profil enregistré");
 });
 document.getElementById("pCancel").addEventListener("click", function(){ dlgMoi.close(); });
