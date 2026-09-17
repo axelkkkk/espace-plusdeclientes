@@ -205,6 +205,7 @@ button{cursor:pointer;border:0;background:none;font-family:inherit}
 /* ---------- primitives ---------- */
 .av{display:grid;place-items:center;flex:none;color:#fff;width:26px;height:26px;
   font-family:var(--f-m);font-size:9.5px;font-weight:700;border-radius:var(--r-sm);clip-path:var(--clip)}
+.av.ph{background-size:cover;background-position:center;background-color:var(--raise)}
 .av.sm{width:21px;height:21px;font-size:8.5px}
 .av.lg{width:38px;height:38px;font-size:13px}
 .avs{display:flex}
@@ -724,6 +725,12 @@ dialog::backdrop{background:rgba(10,16,14,.5);backdrop-filter:blur(2px)}
   display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .cp-id .sous{font-size:13px;color:var(--ink-2)}
 .cp-id .ident{font-family:var(--f-m);font-size:11.5px;color:var(--ink-3)}
+.cp-ph{position:relative;flex:none;border:0;padding:0;background:none;cursor:pointer;border-radius:22px}
+.cp-ph .crayon{position:absolute;right:-5px;bottom:-5px;width:28px;height:28px;border-radius:10px;display:grid;place-items:center;
+  background:var(--acc);color:var(--acc-ink);box-shadow:0 0 0 3px var(--panel)}
+.cp-ph:hover .av{filter:brightness(.9)} .cp-ph:focus-visible{outline:2px solid var(--acc);outline-offset:4px}
+.cp-id .liens{display:flex;gap:12px;margin-top:3px}
+.cp-id .liens .lien{margin:0;font-size:12.5px;padding:0}
 .cp-x{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;border:0;cursor:pointer;
   display:grid;place-items:center;background:transparent;color:var(--ink-2)}
 .cp-x:hover{background:var(--hover);color:var(--ink)}
@@ -855,6 +862,7 @@ dialog::backdrop{background:rgba(10,16,14,.5);backdrop-filter:blur(2px)}
         <input id="lP2" type="password" autocomplete="new-password"></div>
       <p class="lerr" id="lErr" hidden></p>
       <button class="btn pri" type="submit" id="lGo" style="justify-content:center">Se connecter</button>
+      <button class="lien" type="button" id="lOubli" style="margin:0 auto">Mot de passe oublié ?</button>
       <p class="lnote">Identifiants : <b>anya</b>, <b>axel</b>, <b>ryma</b> —
       mot de passe commun <b>Anya123</b>. Chacun peut le changer depuis son compte,
       en bas à gauche.</p>
@@ -1095,6 +1103,36 @@ dialog::backdrop{background:rgba(10,16,14,.5);backdrop-filter:blur(2px)}
     <span class="note" style="margin-left:auto;text-align:right">Le mot de passe filtre l'accès,<br>il ne chiffre rien.</span>
   </div>
 </form></dialog>
+
+<dialog id="dlgOubli"><form method="dialog">
+  <div class="dh"><h2>Mot de passe oublié</h2></div>
+  <div class="db">
+    <div id="oEtape1" style="display:grid;gap:15px">
+      <p class="note">Indique ton identifiant : un code à 6 chiffres part sur l'adresse e-mail reliée à ton compte.</p>
+      <div class="f"><label for="oU">Identifiant</label>
+        <input id="oU" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+    </div>
+    <div id="oEtape2" style="display:grid;gap:15px" hidden>
+      <p class="note" id="oInfo"></p>
+      <div class="f"><label for="oCode">Code reçu par e-mail</label>
+        <input id="oCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456"
+          style="font-family:var(--f-m);font-size:20px;letter-spacing:.3em;text-align:center"></div>
+      <div class="f2">
+        <div class="f"><label for="oN">Nouveau mot de passe</label>
+          <input id="oN" type="password" autocomplete="new-password"></div>
+        <div class="f"><label for="oC">Confirmer</label>
+          <input id="oC" type="password" autocomplete="new-password"></div>
+      </div>
+    </div>
+    <p class="lerr" id="oErr" hidden></p>
+  </div>
+  <div class="df">
+    <button class="btn sp" type="button" id="oFermer">Annuler</button>
+    <button class="btn pri" type="button" id="oGo">Envoyer le code</button>
+  </div>
+</form></dialog>
+
+<input type="file" id="filePhoto" accept="image/*" hidden>
 
 <dialog id="dlgReg"><form method="dialog">
   <div class="dh"><h2>Réglages</h2><span class="sync" id="syncBadge"><i></i><span id="syncTxt">Local</span></span></div>
@@ -1576,8 +1614,11 @@ function membre(nom){
   for (var i = 0; i < EQUIPE().length; i++) if (EQUIPE()[i].nom === nom) return EQUIPE()[i];
   return {nom:nom || "À attribuer", couleur:"#8A92A6", email:"", role:"", vide:!nom};
 }
+var RE_PHOTO = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;   // rien d'autre n'entre dans un style
 function avatar(nom, cls){
   var m = membre(nom);
+  if (m.photo && m.photo.length < 60000 && RE_PHOTO.test(m.photo))
+    return '<i class="av ph ' + (cls||"") + '" style="background-image:url(' + m.photo + ')" title="' + esc(nom) + '"></i>';
   return '<i class="av ' + (cls||"") + '" style="background:' + m.couleur + '" title="' + esc(nom) + '">' +
     esc(inits(nom)) + "</i>";
 }
@@ -3475,10 +3516,14 @@ function rendreCompte(){
   var nR = REUNIONS().filter(function(x){ var d = deYmd(x.date);
     return d && d >= auj() && x.participants.indexOf(m.nom) !== -1; }).length;
   var esp = mesEspaces();
-  document.getElementById("moiCarte").innerHTML = avatar(m.nom, "lg") +
+  document.getElementById("moiCarte").innerHTML =
+    '<button class="cp-ph" type="button" data-photo="choisir" aria-label="Changer ma photo">' + avatar(m.nom, "lg") +
+    '<span class="crayon"><svg class="i sm"><use href="#i-crayon"/></svg></span></button>' +
     '<span class="co"><h2>' + esc(m.nom) + (m.admin ? ' <span class="badge-admin">admin</span>' : "") + "</h2>" +
     '<span class="sous">' + esc(m.role || "Membre de l'équipe") + "</span>" +
-    '<span class="ident">@' + esc(m.user) + "</span></span>";
+    '<span class="ident">@' + esc(m.user) + "</span>" +
+    '<span class="liens"><button class="lien" type="button" data-photo="choisir">' + (m.photo ? "Changer la photo" : "Ajouter une photo") + "</button>" +
+    (m.photo ? '<button class="lien" type="button" data-photo="retirer" style="color:var(--ink-3)">Retirer</button>' : "") + "</span></span>";
   document.getElementById("moiStats").innerHTML =
     "<div><b>" + nT + "</b><span>tâche" + (nT > 1 ? "s" : "") + " en cours</span></div>" +
     "<div><b>" + nR + "</b><span>réunion" + (nR > 1 ? "s" : "") + " à venir</span></div>" +
@@ -3497,6 +3542,32 @@ function rendreCompte(){
   });
   etatCompte();
 }
+/* photo de profil : recadrée en carré et réduite dans le navigateur, pour tenir dans une cellule du Sheet */
+dlgMoi.addEventListener("click", function(e){
+  var b = e.target.closest("[data-photo]"); if (!b) return;
+  if (b.getAttribute("data-photo") === "retirer") {
+    var m = membre(S.moi); m.photo = ""; touche(m); sauver(); rendreCompte(); toast("Photo retirée"); return;
+  }
+  document.getElementById("filePhoto").click();
+});
+document.getElementById("filePhoto").addEventListener("change", function(e){
+  var f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  if (!/^image\//.test(f.type)) { toast("Choisis une image (JPG ou PNG)"); return; }
+  var url = URL.createObjectURL(f), img = new Image();
+  img.onload = function(){
+    var c = document.createElement("canvas"), T = 160; c.width = T; c.height = T;
+    var cote = Math.min(img.width, img.height);
+    c.getContext("2d").drawImage(img, (img.width - cote) / 2, (img.height - cote) / 2, cote, cote, 0, 0, T, T);
+    URL.revokeObjectURL(url);
+    var d = c.toDataURL("image/jpeg", 0.82);
+    if (d.length > 40000) d = c.toDataURL("image/jpeg", 0.6);
+    if (d.length > 40000 || !RE_PHOTO.test(d)) { toast("Image trop lourde, essaie-en une autre"); return; }
+    var m = membre(S.moi); m.photo = d; touche(m); sauver(); rendreCompte(); toast("Photo mise à jour");
+  };
+  img.onerror = function(){ URL.revokeObjectURL(url); toast("Image illisible"); };
+  img.src = url;
+});
 document.getElementById("pEditProfil").addEventListener("click", function(){
   var z = document.getElementById("pZoneProfil");
   z.hidden = !z.hidden; erreurMail("");
@@ -3680,7 +3751,13 @@ document.getElementById("fileImp").addEventListener("change", function(e){
   var f = e.target.files[0]; if (!f) return;
   var r = new FileReader();
   r.onload = function(){
-    try { S = normaliser(JSON.parse(r.result)); sauver(); dlgReg.close(); toast("Espace restauré"); }
+    try {
+      var url = S.url, moi = S.moi, lu = JSON.parse(r.result);
+      S = normaliser(lu);
+      if (!lu.url) S.url = url;                 // une sauvegarde du serveur ne contient ni l'adresse ni la session
+      if (!lu.moi) S.moi = moi;
+      sauver(); dlgReg.close(); toast("Espace restauré");
+    }
     catch(err){ alert("Fichier illisible."); }
   };
   r.readAsText(f);
@@ -3764,6 +3841,82 @@ function modeDefinition(m){
   document.getElementById("lU").readOnly = true;
   document.getElementById("lP").focus();
 }
+/* ---------- mot de passe oublié : le code est créé, envoyé et vérifié par le serveur ---------- */
+var dlgOubli = document.getElementById("dlgOubli"), oubliUser = null;
+var RAISONS = {
+  inconnu:"Identifiant inconnu.",
+  sans_email:"Ce compte n'est relié à aucune adresse e-mail. Demande à un administrateur de réinitialiser ton mot de passe (Équipe → ta fiche).",
+  trop_vite:"Un code vient de partir. Patiente une minute avant d'en redemander un.",
+  trop_souvent:"Trop de codes demandés aujourd'hui. Réessaie demain ou vois avec un administrateur.",
+  pas_de_code:"Aucun code en cours. Redemande-en un.",
+  expire:"Ce code a expiré. Redemande-en un.",
+  bloque:"Trop d'essais. Redemande un nouveau code.",
+  format:"Ce navigateur ne sait pas chiffrer le mot de passe. Essaie avec Chrome ou Safari à jour.",
+  reseau:"Pas de réponse du serveur. Vérifie ta connexion et réessaie.",
+  ancien:"Le serveur n'est pas encore à jour pour cette fonction."
+};
+function erreurO(t){ var e = document.getElementById("oErr"); e.hidden = !t; e.textContent = t || ""; }
+function appelServeur(corps, cb){
+  fetch(S.url, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(corps)})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ cb(d && typeof d.ok === "boolean" ? d : {ok:false, raison:"ancien"}); })
+    .catch(function(){ cb({ok:false, raison:"reseau"}); });
+}
+function etapeOubli(n){
+  document.getElementById("oEtape1").hidden = n !== 1;
+  document.getElementById("oEtape2").hidden = n !== 2;
+  document.getElementById("oGo").textContent = n === 1 ? "Envoyer le code" : "Changer le mot de passe";
+  document.getElementById("oGo").disabled = false;
+}
+document.getElementById("lOubli").addEventListener("click", function(){
+  erreurO(""); oubliUser = null; etapeOubli(1);
+  document.getElementById("oU").value = document.getElementById("lU").value.trim();
+  ["oCode","oN","oC"].forEach(function(id){ document.getElementById(id).value = ""; });
+  dlgOubli.showModal();
+  if (!S.url) { erreurO("Ce navigateur n'est pas branché sur l'espace partagé. Ouvre d'abord le lien d'invitation qu'on t'a envoyé."); document.getElementById("oGo").disabled = true; }
+});
+document.getElementById("oFermer").addEventListener("click", function(){ dlgOubli.close(); });
+document.getElementById("oGo").addEventListener("click", function(){
+  var bouton = document.getElementById("oGo");
+  erreurO("");
+  if (!oubliUser) {                                   // étape 1 : demander le code
+    var u = document.getElementById("oU").value.trim();
+    if (!u) { erreurO("Indique ton identifiant."); return; }
+    bouton.disabled = true;
+    appelServeur({action:"oubli", user:identifiant(u)}, function(d){
+      bouton.disabled = false;
+      if (!d.ok) { erreurO(RAISONS[d.raison] || "Envoi impossible."); return; }
+      oubliUser = identifiant(u);
+      document.getElementById("oInfo").textContent = "Code envoyé à " + d.vers + ". Il est valable " +
+        (d.minutes || 15) + " minutes — regarde aussi dans tes spams.";
+      etapeOubli(2); document.getElementById("oCode").focus();
+    });
+    return;
+  }
+  var m = parIdentifiant(oubliUser);                   // étape 2 : code + nouveau mot de passe
+  var code = document.getElementById("oCode").value.replace(/\D/g, "");
+  var n = document.getElementById("oN").value, c = document.getElementById("oC").value;
+  if (!m) { erreurO("Identifiant inconnu sur ce navigateur. Recharge la page et réessaie."); return; }
+  if (code.length !== 6) { erreurO("Le code fait 6 chiffres."); return; }
+  if (n.length < 6) { erreurO("Six caractères au minimum."); return; }
+  if (n !== c) { erreurO("Les deux saisies ne correspondent pas."); return; }
+  bouton.disabled = true;
+  hacher(n, m.sel, function(h){
+    appelServeur({action:"reinit", user:oubliUser, code:code, mdp:h}, function(d){
+      bouton.disabled = false;
+      if (!d.ok) {
+        erreurO(d.raison === "mauvais_code" ? "Code incorrect — encore " + d.reste + " essai(s)." : (RAISONS[d.raison] || "Échec."));
+        return;
+      }
+      appliquer(d.etat);
+      dlgOubli.close();
+      document.getElementById("lU").value = oubliUser; document.getElementById("lP").value = "";
+      document.getElementById("lP").focus();
+      toast("Mot de passe changé — connecte-toi avec le nouveau");
+    });
+  });
+});
+
 document.getElementById("frmL").addEventListener("submit", function(e){
   e.preventDefault();
   erreurL("");
@@ -3777,7 +3930,7 @@ document.getElementById("frmL").addEventListener("submit", function(e){
     if (mdp.length < 6)  { erreurL("Six caractères au minimum."); return; }
     if (mdp !== c)       { erreurL("Les deux mots de passe ne correspondent pas."); return; }
     hacher(mdp, attenteMdp.sel, function(h){
-      attenteMdp.mdp = h;
+      attenteMdp.mdp = h; touche(attenteMdp); attenteMdp.par = attenteMdp.nom;
       var m2 = attenteMdp; attenteMdp = null;
       ouvrirSession(m2);
     });
