@@ -1035,7 +1035,12 @@ dialog::backdrop{background:rgba(6,8,12,.66)}
       <p class="note">Laissé vide, l'espace vit <b>dans ce navigateur seulement</b> : chacun aurait
       sa propre copie et vous ne verriez pas le travail des autres. Colle ici l'adresse de
       l'application web Apps Script (fichier <code>sync.gs</code>) pour que les trois postes
-      partagent les mêmes tâches, réunions et messages.</p></div>
+      partagent les mêmes tâches, réunions et messages.</p>
+      <div id="gInvBloc" hidden>
+        <button class="btn" type="button" id="gInv"><svg class="i sm"><use href="#i-equipe"/></svg>Copier le lien d'invitation</button>
+        <p class="note">Envoie ce lien <b>en privé</b> à Axel ou Ryma (WhatsApp, pas un canal public) :
+        en l'ouvrant, leur navigateur se branche tout seul sur l'espace partagé. Ce lien vaut une clé —
+        qui l'a peut lire et modifier vos données.</p></div></div>
     <div class="f"><label>Données</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" type="button" id="gExp">Exporter</button>
@@ -3488,6 +3493,7 @@ var dlgReg = document.getElementById("dlgReg");
 document.getElementById("bReg").addEventListener("click", function(){
   document.getElementById("gUrl").value = S.url || "";
   badge(S.url ? "on" : "", S.url ? "Partagé" : "Local");
+  document.getElementById("gInvBloc").hidden = !adresseSyncValide(S.url);
   dlgReg.showModal();
 });
 dlgReg.addEventListener("close", function(){
@@ -3495,6 +3501,35 @@ dlgReg.addEventListener("close", function(){
   var change = u !== S.url;
   S.url = u; sauver();
   if (change && u) tirer(); else if (!u) badge("", "Local");
+});
+/* Lien d'invitation : l'adresse de synchronisation voyage dans le # (jamais envoyé au serveur),
+   et n'est acceptée que si c'est bien une application web Apps Script. */
+function adresseSyncValide(u){
+  return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/.test(String(u || ""));
+}
+function lienInvitation(){
+  var code = btoa(S.url).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return location.origin + location.pathname + "#inviter=" + code;
+}
+function lireInvitation(){
+  var m = /^#inviter=([A-Za-z0-9_-]+)$/.exec(location.hash || "");
+  if (!m) return false;
+  try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+  var u = "";
+  try { u = atob(m[1].replace(/-/g, "+").replace(/_/g, "/")); } catch(e){}
+  if (!adresseSyncValide(u)) { setTimeout(function(){ toast("Lien d'invitation invalide"); }, 400); return false; }
+  if (S.url === u) return false;
+  S.url = u;
+  try { localStorage.setItem(CLE, JSON.stringify(S)); } catch(e){}
+  setTimeout(function(){ toast("Poste branché sur l'espace partagé"); }, 400);
+  return true;
+}
+document.getElementById("gInv").addEventListener("click", function(){
+  var lien = lienInvitation();
+  function ok(){ toast("Lien copié — envoie-le en privé"); }
+  function secours(){ window.prompt("Copie ce lien et envoie-le en privé :", lien); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(lien).then(ok, secours);
+  else secours();
 });
 document.getElementById("gExp").addEventListener("click", function(){
   var a = document.createElement("a");
@@ -3643,6 +3678,7 @@ try { themeInitial = localStorage.getItem("pdc-theme") || "auto"; } catch(e){}
 appliquerTheme(themeInitial);
 calAncre = auj();
 var VUES = ["dash","taches","clientes","calendrier","reunions","messages","equipe","rapports","archives"];
+lireInvitation();
 (function(){
   var h = decodeURIComponent(location.hash.slice(1) || "");
   var p = h.split("/");
