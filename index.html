@@ -355,6 +355,11 @@ button.tile:hover{border-color:var(--line-2);background:var(--hover)}
 .li:hover{background:var(--hover)}
 .li .co{flex:1;min-width:0}
 .li .co b{display:block;font-size:13px;font-weight:600;line-height:1.4}
+.li.act{cursor:default;align-items:flex-start}
+.li.act:hover{background:transparent}
+.li.act .co b{font-weight:500;color:var(--ink-2)}
+.li.act .co b em{font-style:normal;font-weight:700;color:var(--ink)}
+.li.act .ech{flex:none;font-size:10.5px;padding-top:2px}
 .li.gros{padding:14px 18px;gap:14px}
 .li.gros .co b{font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.35}
 .li.gros .cl{flex:none;width:150px;font-size:12.5px;font-weight:600}
@@ -1215,7 +1220,13 @@ function libelleClients(pluriel){
   var l = (e && e.entites) || "Clientes";
   return pluriel === false ? l.replace(/s$/, "") : l;
 }
-function touche(o){ o.maj = Date.now(); return o; }
+/* Chaque modification est datée ET signée : c'est ce qui permet de dire « Ryma a terminé… » */
+function touche(o){
+  o.maj = Date.now();
+  if (typeof S !== "undefined" && S && S.moi) o.par = S.moi;
+  if (!o.creeLe) o.creeLe = o.maj;          // première signature = création
+  return o;
+}
 function jeter(o){ if (o) { o.supprime = true; o.maj = Date.now(); } }
 function identifiant(nom){
   return String(nom || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -1316,6 +1327,7 @@ function normaliser(o){
   ["taches","reunions","messages","equipe","groupes","espaces"].forEach(function(k){
     o[k].forEach(function(x){
       if (!x.maj) x.maj = 1;
+      if (!x.creeLe) x.creeLe = 1;            // existait avant le journal : jamais « ajouté »
       if (typeof x.supprime !== "boolean") x.supprime = false;
     });
   });
@@ -1419,19 +1431,16 @@ function fusionner(cle, distants){
 
 /* ce qui vient d'arriver des autres, dit en une phrase */
 function annoncer(neufs){
-  var msg = (neufs.messages || []).filter(function(m){ return m.auteur !== S.moi; });
-  if (msg.length) {
-    var a = msg[msg.length - 1];
-    toast(a.auteur + " : " + a.texte.slice(0, 44) + (a.texte.length > 44 ? "…" : ""));
-    return;
-  }
-  if ((neufs.reunions || []).length) {
-    var r = neufs.reunions[neufs.reunions.length - 1];
-    toast("Réunion ajoutée — " + String(r.titre || "").slice(0, 40));
-    return;
-  }
-  var t = neufs.taches || [];
-  if (t.length) toast(t.length + (t.length > 1 ? " tâches mises à jour" : " tâche mise à jour"));
+  var l = [];
+  (neufs.taches   || []).forEach(function(x){ l.push({t:"tache",   x:x, titre:x.titre}); });
+  (neufs.reunions || []).forEach(function(x){ l.push({t:"reunion", x:x, titre:x.titre}); });
+  (neufs.messages || []).forEach(function(x){ if (voitCanal(x.canal)) l.push({t:"message", x:x, titre:nomCanal(x.canal)}); });
+  l = l.filter(function(e){ return (e.x.par || e.x.auteur) && (e.x.par || e.x.auteur) !== S.moi && (e.x.maj||0) > 1; });
+  if (!l.length) return;
+  l.sort(function(a, b){ return (b.x.maj||0) - (a.x.maj||0); });
+  var e = l[0], qui = e.x.par || e.x.auteur;
+  var txt = qui + " " + verbe(e.t, e.x) + " « " + String(e.titre || "").slice(0, 38) + " »";
+  toast(l.length > 1 ? txt + " — et " + (l.length - 1) + " autre(s)" : txt);
 }
 
 function appliquer(d){
@@ -1779,6 +1788,56 @@ function tuiles(liste){
       "</b><span>" + x[3] + "</span></button>"; }).join("") + "</div>";
 }
 
+/* ================= activité de l'équipe =================
+   Déduite des enregistrements eux-mêmes (qui, quand, quel état) : pas de journal
+   séparé à synchroniser, donc jamais en désaccord avec les données. */
+function verbe(type, x){
+  if (type === "tache") {
+    if (x.supprime) return "a supprimé";
+    if (x.archive)  return "a archivé";
+    if (x.fait)     return "a terminé";
+    return x.creeLe === x.maj ? "a ajouté" : "a modifié";
+  }
+  if (type === "reunion") {
+    if (x.supprime) return "a annulé la réunion";
+    return x.creeLe === x.maj ? "a planifié la réunion" : "a modifié la réunion";
+  }
+  return x.supprime ? "a retiré un message de" : "a écrit dans";
+}
+function ilYA(ms){
+  var d = Math.max(0, Date.now() - ms), m = Math.round(d / 60000);
+  if (m < 1)  return "à l'instant";
+  if (m < 60) return "il y a " + m + " min";
+  var h = Math.round(m / 60);
+  if (h < 24) return "il y a " + h + " h";
+  var j = Math.round(h / 24);
+  return j === 1 ? "hier" : "il y a " + j + " j";
+}
+function activite(limite){
+  var l = [];
+  S.taches.forEach(function(x){   if ((x.maj||0) > 1 && dansEspace(x)) l.push({t:"tache",   x:x, titre:x.titre}); });
+  S.reunions.forEach(function(x){ if ((x.maj||0) > 1 && dansEspace(x)) l.push({t:"reunion", x:x, titre:x.titre}); });
+  S.messages.forEach(function(x){ if ((x.maj||0) > 1 && dansEspace(x) && voitCanal(x.canal)) l.push({t:"message", x:x, titre:nomCanal(x.canal)}); });
+  l.sort(function(a, b){ return (b.x.maj||0) - (a.x.maj||0); });
+  return l.slice(0, limite || 8);
+}
+function panneauActivite(){
+  var l = activite(8);
+  var h = '<section class="panel"><div class="panel-h"><h2>Activité de l\'équipe</h2>' +
+    '<span class="n">' + l.length + "</span></div>";
+  if (!l.length) return h + '<div class="vide"><b>Rien encore.</b>Dès que quelqu\'un coche, ajoute ou ' +
+    "modifie quelque chose, ça s'affiche ici pour tout le monde.</div></section>";
+  return h + l.map(function(e){
+    var qui = e.x.par || e.x.auteur || "Quelqu'un";
+    return '<div class="li act">' + avatar(qui === "Quelqu'un" ? "" : qui, "sm") +
+      '<span class="co"><b>' + esc(qui === S.moi ? "Tu" : qui) + " " +
+      (qui === S.moi ? verbe(e.t, e.x).replace(/^a /, "as ") : verbe(e.t, e.x)) +
+      ' <em>' + esc(e.titre) + "</em></b>" +
+      (e.t === "tache" && e.x.cliente ? "<small>" + esc(e.x.cliente) + "</small>" : "") + "</span>" +
+      '<span class="ech">' + esc(ilYA(e.x.maj)) + "</span></div>";
+  }).join("") + "</section>";
+}
+
 /* ================= vue d'ensemble ================= */
 function selecteurPersonne(){
   var opts = [{v:"", n:"Toute l'équipe"}].concat(EQUIPE().map(function(m){
@@ -1893,6 +1952,8 @@ function vDash(){
   }
 
   h += "</div><div class=\"stack\">";
+
+  h += panneauActivite();
 
   h += '<section class="panel"><div class="panel-h"><h2>Avancement de l\'équipe</h2></div>' +
     EQUIPE().map(function(m){
@@ -2259,6 +2320,11 @@ function membresCanal(id){
   if (id.indexOf("dm:") === 0) return id.slice(3).split("~");
   var g = groupe(id);
   return g ? g.membres : [];
+}
+/* un message privé ou de groupe ne s'annonce qu'à ses membres */
+function voitCanal(id){
+  var m = membresCanal(String(id || ""));
+  return !m.length || m.indexOf(S.moi) !== -1;
 }
 /* les canaux visibles, rangés par famille */
 function canaux(){
