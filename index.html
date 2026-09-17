@@ -1327,7 +1327,7 @@ function normaliser(o){
   ["taches","reunions","messages","equipe","groupes","espaces"].forEach(function(k){
     o[k].forEach(function(x){
       if (!x.maj) x.maj = 1;
-      if (!x.creeLe) x.creeLe = 1;            // existait avant le journal : jamais « ajouté »
+      x.creeLe = +x.creeLe || 1;            // le Sheet le renvoie en texte ; absent = existait avant le journal
       if (typeof x.supprime !== "boolean") x.supprime = false;
     });
   });
@@ -1796,11 +1796,11 @@ function verbe(type, x){
     if (x.supprime) return "a supprimé";
     if (x.archive)  return "a archivé";
     if (x.fait)     return "a terminé";
-    return x.creeLe === x.maj ? "a ajouté" : "a modifié";
+    return +x.creeLe === +x.maj ? "a ajouté" : "a modifié";
   }
   if (type === "reunion") {
     if (x.supprime) return "a annulé la réunion";
-    return x.creeLe === x.maj ? "a planifié la réunion" : "a modifié la réunion";
+    return +x.creeLe === +x.maj ? "a planifié la réunion" : "a modifié la réunion";
   }
   return x.supprime ? "a retiré un message de" : "a écrit dans";
 }
