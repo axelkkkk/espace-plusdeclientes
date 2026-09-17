@@ -205,6 +205,7 @@ button{cursor:pointer;border:0;background:none;font-family:inherit}
 /* ---------- primitives ---------- */
 .av{display:grid;place-items:center;flex:none;color:#fff;width:26px;height:26px;
   font-family:var(--f-m);font-size:9.5px;font-weight:700;border-radius:var(--r-sm);clip-path:var(--clip)}
+.ga{color:var(--ok);font-weight:700;display:inline-flex;align-items:center;gap:3px}
 .av.ph{background-size:cover;background-position:center;background-color:var(--raise)}
 .av.sm{width:21px;height:21px;font-size:8.5px}
 .av.lg{width:38px;height:38px;font-size:13px}
@@ -965,7 +966,9 @@ dialog::backdrop{background:rgba(10,16,14,.5);backdrop-filter:blur(2px)}
         <option value="45">45 min</option><option value="60" selected>1 h</option>
         <option value="90">1 h 30</option><option value="120">2 h</option></select></div>
     </div>
-    <div class="f"><label>Qui participe</label><div class="parts" id="rP"></div></div>
+    <div class="f"><label>Qui participe</label><div class="parts" id="rP"></div>
+      <p class="note">Les participants dont le compte est relié à un e-mail reçoivent l'invitation dans leur
+      <b>Google Agenda</b> ; la modifier ou l'annuler ici met leur agenda à jour.</p></div>
     <div class="f2">
       <div class="f"><label for="rC">Cliente</label><input id="rC" list="dlC2" placeholder="Optionnel"><datalist id="dlC2"></datalist></div>
       <div class="f"><label for="rL">Lien ou lieu</label><input id="rL" placeholder="Google Meet, téléphone…"></div>
@@ -1337,6 +1340,10 @@ function touche(o){
   o.maj = Date.now();
   if (typeof S !== "undefined" && S && S.moi) o.par = S.moi;
   if (!o.creeLe) o.creeLe = o.maj;          // première signature = création
+  if (o.participants && o.date && o.heure) {   // réunion : l'instant exact, dans le fuseau de la personne qui saisit —
+    var dj = deYmd(o.date), hm = String(o.heure).split(":");   // c'est lui que Google Agenda affichera à chacun chez soi
+    if (dj) o.debut = new Date(dj.getFullYear(), dj.getMonth(), dj.getDate(), +hm[0] || 0, +hm[1] || 0).getTime();
+  }
   return o;
 }
 function jeter(o){ if (o) { o.supprime = true; o.maj = Date.now(); } }
@@ -2385,6 +2392,7 @@ function ligneReunion(r){
     "<span>" + '<svg class="i sm"><use href="#i-clock"/></svg>' + " " + esc(r.heure) + " – " + esc(finHeure(r)) + "</span>" +
     (r.cliente ? '<span style="color:' + teinteCliente(r.cliente) + '">● ' + esc(r.cliente) + "</span>" : "") +
     (r.lieu ? "<span>" + esc(r.lieu) + "</span>" : "") +
+    (r.agendaId ? '<span class="ga" title="Envoyée dans Google Agenda"><svg class="i sm"><use href="#i-check"/></svg> Google Agenda</span>' : "") +
     "</span></span>" +
     '<span class="avs">' + r.participants.map(function(p){ return avatar(p, "sm"); }).join("") + "</span></button>";
 }
